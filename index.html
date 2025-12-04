@@ -11,17 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Zen Maru Gothic', sans-serif; background: #fafafa; min-height: 100vh; }
 
-        body {
-            font-family: 'Zen Maru Gothic', sans-serif;
-            background: #fafafa;
-            min-height: 100vh;
-        }
-
-        /* ======= Warhol 經典顏色 ======= */
         :root {
             --w-yellow: #FFEB3B;
             --w-blue: #2979FF;
@@ -30,7 +22,6 @@
             --w-black: #000;
         }
 
-        /* ========== 頂部欄位 ========== */
         .status-bar {
             padding: 15px 20px;
             display: flex;
@@ -58,7 +49,6 @@
             border: 3px solid var(--w-black);
         }
 
-        /* ========== 四分割 Warhol Grid ========== */
         .warhol-grid {
             margin: 25px auto;
             max-width: 680px;
@@ -79,7 +69,6 @@
             overflow: hidden;
         }
 
-        /* Riso 錯版風格（色塊搖動） */
         @keyframes hueShake {
             0% { filter: hue-rotate(0deg) brightness(100%); }
             25% { filter: hue-rotate(12deg) brightness(110%); }
@@ -93,53 +82,21 @@
         .c3 { background: var(--w-pink); animation: hueShake 5.5s infinite ease-in-out .6s; }
         .c4 { background: var(--w-green); animation: hueShake 7s infinite ease-in-out 1s; }
 
-
-        /* ===== 半色調 Dot 效果（Halftone） ===== */
-        .halftone {
-            position: relative;
-            display: inline-block;
-        }
-
+        .halftone { position: relative; display: inline-block; }
         .halftone::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-
-            background: repeating-radial-gradient(
-                circle,
-                rgba(0,0,0,0.25) 0,
-                rgba(0,0,0,0.25) 2px,
-                transparent 3px,
-                transparent 6px
-            );
-
-            mix-blend-mode: multiply;
-            opacity: 0.45;
-            pointer-events: none;
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-radial-gradient(circle, rgba(0,0,0,0.25) 0,
+            rgba(0,0,0,0.25) 2px, transparent 3px, transparent 6px);
+            mix-blend-mode: multiply; opacity: 0.45; pointer-events: none;
         }
 
-        .wh-icon {
-            font-size: 4.5rem;
-            margin-bottom: 10px;
-            filter: brightness(150%) contrast(240%) saturate(350%) drop-shadow(4px 4px 0 #000);
-        }
+        .wh-icon { font-size: 4.5rem; margin-bottom: 10px; }
+        .wh-temp { font-size: 3rem; }
+        .wh-desc { font-size: 1.5rem; margin-top: 5px; }
 
-        .wh-temp {
-            font-size: 3rem;
-        }
-
-        .wh-desc {
-            font-size: 1.5rem;
-            margin-top: 5px;
-        }
-
-        /* ========== 稍後預報 (小卡) ========== */
         .section-title {
-            max-width: 680px;
-            margin: 10px auto;
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: var(--w-black);
+            max-width: 680px; margin: 10px auto;
+            font-size: 1.6rem; font-weight: 900;
         }
 
         .scroll-container {
@@ -168,13 +125,8 @@
         .mini-card:nth-child(4n+3) { background: var(--w-pink); }
         .mini-card:nth-child(4n+4) { background: var(--w-green); }
 
-        .mini-icon {
-            font-size: 2.8rem;
-            margin-bottom: 5px;
-            filter: brightness(150%) contrast(240%) saturate(350%) drop-shadow(4px 4px 0 #000);
-        }
+        .mini-icon { font-size: 2.8rem; margin-bottom: 5px; }
 
-        /* ===== Loading ===== */
         .loading-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: var(--w-yellow);
@@ -186,34 +138,32 @@
 </head>
 
 <body>
-    <!-- ========== Loading 畫面 ========== -->
     <div id="loading" class="loading-screen">
         <div style="font-size:4rem;">☁️</div>
         <p style="margin-top:15px;font-weight:900;">正在觀測雲的流動...</p>
     </div>
 
-    <!-- ========== 頂部欄位 ========== -->
     <div class="status-bar">
         <div class="location-pill">📍 台中</div>
         <div id="updateTime" class="update-pill">更新中...</div>
     </div>
 
     <div id="mainContent" style="display:none;">
-
-        <!-- 四格 Warhol 風格 -->
         <div id="warholGrid" class="warhol-grid"></div>
 
-        <!-- 稍後預報 -->
         <h3 class="section-title">稍後預報</h3>
         <div id="futureForecasts" class="scroll-container"></div>
     </div>
 
-
-    <!-- ========== JS ========== -->
     <script>
         const API_URL = "https://weather-taichun.zeabur.app/api/weather/taichung";
 
+        function cleanNumber(n) {
+            return parseFloat(String(n).replace(/[^0-9.-]/g, "")) || 0;
+        }
+
         function getWeatherIcon(w) {
+            if (!w) return "🌤️";
             if (w.includes("晴")) return "☀️";
             if (w.includes("多雲")) return "⛅";
             if (w.includes("陰")) return "☁️";
@@ -235,10 +185,12 @@
             const current = data.forecasts[0];
             const others = data.forecasts.slice(1);
 
-            const period = getTimePeriod(current.startTime);
-            const avgTemp = Math.round((+current.maxTemp + +current.minTemp) / 2);
+            const minT = cleanNumber(current.minTemp);
+            const maxT = cleanNumber(current.maxTemp);
 
-            /* ========== Warhol 四格 ========== */
+            const avgTemp = Math.round((minT + maxT) / 2);
+            const period = getTimePeriod(current.startTime);
+
             document.getElementById("warholGrid").innerHTML = `
                 <div class="wh-card c1">
                     <div class="wh-icon halftone">${getWeatherIcon(current.weather)}</div>
@@ -249,23 +201,22 @@
                 <div class="wh-card c2">
                     <div class="wh-icon halftone">${getWeatherIcon(current.weather)}</div>
                     <div class="wh-desc">${current.weather}</div>
-                    <div class="wh-temp">${current.minTemp}° ~ ${current.maxTemp}°</div>
+                    <div class="wh-temp">${minT}° ~ ${maxT}°</div>
                 </div>
 
                 <div class="wh-card c3">
                     <div class="wh-icon halftone">💧</div>
-                    <div class="wh-temp">${current.rain}</div>
+                    <div class="wh-temp">${cleanNumber(current.rain)}%</div>
                     <div class="wh-desc">降雨率</div>
                 </div>
 
                 <div class="wh-card c4">
                     <div class="wh-icon halftone">🌡️</div>
-                    <div class="wh-temp">${current.maxTemp}°</div>
+                    <div class="wh-temp">${maxT}°</div>
                     <div class="wh-desc">最高溫</div>
                 </div>
             `;
 
-            /* ========== 稍後預報 ========== */
             const container = document.getElementById("futureForecasts");
             container.innerHTML = "";
 
@@ -279,8 +230,8 @@
                     <div class="mini-card">
                         <div>${period}</div>
                         <div class="mini-icon halftone">${getWeatherIcon(f.weather)}</div>
-                        <div>${f.minTemp}° - ${f.maxTemp}°</div>
-                        <div>💧 ${f.rain}</div>
+                        <div>${cleanNumber(f.minTemp)}° - ${cleanNumber(f.maxTemp)}°</div>
+                        <div>💧 ${cleanNumber(f.rain)}%</div>
                     </div>
                 `;
             });
